@@ -3,6 +3,7 @@ const multer = require("multer");
 const auth = require("../middleware/auth");
 const User = require("../models/users");
 const sharp = require("sharp");
+const follow = require("../middleware/follow");
 
 const { check, validationResult } = require("express-validator");
 const router = new express.Router();
@@ -159,4 +160,15 @@ router.get("/user/avatar/me", auth, async (req, res) => {
 	res.set("Content-Type", "image/png");
 	res.send(user.avatar);
 });
+
+router.post("/user/follow/:id", auth, follow, async (req, res) => {
+	const follid = req.params.id;
+	const user = User.findById(req.params.id);
+	if (!user) {
+		return res.status(400).send("user not found");
+	}
+	// req.user.followedBy(follid, req.user._id);
+	res.send(200);
+});
+
 module.exports = router;

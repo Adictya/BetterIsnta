@@ -43,10 +43,14 @@ const userSchema = new mongoose.Schema(
 		},
 		follower: [
 			{
-				account: {
-					type: mongoose.Schema.Types.ObjectId,
-					required: true,
-				},
+				type: mongoose.Schema.Types.ObjectId,
+				required: true,
+			},
+		],
+		following: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				required: true,
 			},
 		],
 	},
@@ -60,16 +64,34 @@ userSchema.methods.generateAuthToken = async function () {
 		{ _id: user._id.toString() },
 		process.env.BCRYPT_SECRET
 	);
-
 	user.tokens = user.tokens.concat({ token });
 
 	await user.save();
 	return token;
 };
+userSchema.methods.followedBy = async function (id) {
+	const user = this;
+	const _id = mongoose.Types.ObjectId(id);
+	user.follower.addToSet(_id);
+	await user.save();
+	return 1;
+};
+userSchema.methods.follow = async function (id) {
+	const user = this;
+	const _id = mongoose.Types.ObjectId(id);
+	user.following.addToSet(_id);
+	await user.save();
+	return 1;
+};
 userSchema.virtual("followers", {
 	ref: "Follower",
 	localField: "_id",
 	foreignField: "follower.account",
+});
+userSchema.virtual("followings", {
+	ref: "Following",
+	localField: "_id",
+	foreignField: "following.account",
 });
 userSchema.virtual("posts", {
 	ref: "Post",
@@ -128,7 +150,6 @@ userSchema.pre("save", async function (next) {
 
 	next();
 });
-
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
