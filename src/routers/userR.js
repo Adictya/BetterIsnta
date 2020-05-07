@@ -155,7 +155,7 @@ router.get("/user/avatar/:id", async (req, res) => {
 	}
 });
 
-router.get("/user/avatar/me", auth, async (req, res) => {
+router.get("/user/me/avatar", auth, async (req, res) => {
 	const user = await User.findById(req.user._id);
 	res.set("Content-Type", "image/png");
 	res.send(user.avatar);
@@ -168,7 +168,15 @@ router.post("/user/follow/:id", auth, follow, async (req, res) => {
 		return res.status(400).send("user not found");
 	}
 	// req.user.followedBy(follid, req.user._id);
-	res.send(200);
+	res.sendStatus(200);
+});
+
+router.get("/user/me/following", auth, async (req, res) => {
+	res.send(req.user.following);
+});
+
+router.get("/user/me/follower", auth, async (req, res) => {
+	res.send(req.user.follower);
 });
 
 module.exports = router;

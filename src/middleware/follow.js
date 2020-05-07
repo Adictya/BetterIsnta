@@ -5,6 +5,7 @@ const follow = async (req, res, next) => {
 		_id: req.params.id,
 	});
 	if (!user1) {
+		return res.sendStatus(404);
 	}
 	user1.followedBy(req.user._id);
 	req.user.follow(user1._id);

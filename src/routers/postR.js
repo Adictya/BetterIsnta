@@ -3,6 +3,7 @@ const multer = require("multer");
 const auth = require("../middleware/auth");
 const Post = require("../models/posts");
 const sharp = require("sharp");
+const User = require("../models/users");
 
 const router = new express.Router();
 
@@ -62,6 +63,21 @@ router.get("/post/me", auth, async (req, res) => {
 	}
 });
 
-router.get("/post/:id");
+router.get("/posts", auth, async (req, res) => {
+	const posts = await Post.find({ owner: { $in: req.user.following } });
+	res.send(posts);
+});
+
+router.get("/post/:id", auth, async (req, res) => {
+	const post = await Post.findOne({ _id: req.params.id });
+	if (req.user._id === post.owner) {
+		return res.send(post);
+	}
+	const user = await User.findOne({ follower: req.user._id });
+	if (!user || !post) {
+		return res.sendStatus(400);
+	}
+	res.send(post);
+});
 
 module.exports = router;

@@ -99,12 +99,6 @@ userSchema.virtual("posts", {
 	foreignField: "owner",
 });
 
-// userSchema.virtual('collections', {
-//       ref: 'Collection',
-//       localField: '_id',
-//       foreignField: 'owner'
-// })
-
 userSchema.methods.toJSON = function () {
 	const user = this;
 	const userObject = user.toObject();
@@ -136,7 +130,6 @@ userSchema.pre("remove", async function (next) {
 	const user = this;
 
 	await Post.deleteMany({ owner: user._id });
-	// await Collections.deleteMany({owner: user._id})
 
 	next();
 });
