@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema(
 		follower: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
+				ref: "Follower",
 				required: true,
 			},
 		],
@@ -51,6 +52,7 @@ const userSchema = new mongoose.Schema(
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				required: true,
+				ref: "Following",
 			},
 		],
 	},
@@ -86,12 +88,12 @@ userSchema.methods.follow = async function (id) {
 userSchema.virtual("followers", {
 	ref: "Follower",
 	localField: "_id",
-	foreignField: "follower.account",
+	foreignField: "follower",
 });
 userSchema.virtual("followings", {
 	ref: "Following",
 	localField: "_id",
-	foreignField: "following.account",
+	foreignField: "following",
 });
 userSchema.virtual("posts", {
 	ref: "Post",

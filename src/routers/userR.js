@@ -172,11 +172,45 @@ router.post("/user/follow/:id", auth, follow, async (req, res) => {
 });
 
 router.get("/user/me/following", auth, async (req, res) => {
-	res.send(req.user.following);
+	const followings = [];
+	try {
+		var each = new Promise((resolve, reject) => {
+			req.user.following.forEach(async (obj, index, array) => {
+				// if(index>=req.query.skip && index<=req.query.limit)
+				const foll = await User.findOne({ _id: obj });
+				followings.push(foll);
+				if (index === array.length - 1) resolve();
+			});
+		}).then(() => {
+			followings.sort((a, b) =>
+				a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+			);
+			res.send(followings);
+		});
+	} catch (e) {
+		res.status(500).send(e);
+	}
 });
 
 router.get("/user/me/follower", auth, async (req, res) => {
-	res.send(req.user.follower);
+	const followers = [];
+	try {
+		var each = new Promise((resolve, reject) => {
+			req.user.follower.forEach(async (obj, index, array) => {
+				// if(index>=req.query.skip && index<=req.query.limit)
+				const foll = await User.findOne({ _id: obj });
+				followers.push(foll);
+				if (index === array.length - 1) resolve();
+			});
+		}).then(() => {
+			followers.sort((a, b) =>
+				a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+			);
+			res.send(followers);
+		});
+	} catch (e) {
+		res.status(500).send(e);
+	}
 });
 
 module.exports = router;

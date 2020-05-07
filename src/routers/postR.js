@@ -64,8 +64,8 @@ router.get("/post/me", auth, async (req, res) => {
 });
 
 router.get("/posts", auth, async (req, res) => {
-	const posts = await Post.find({ owner: { $in: req.user.following } });
-	res.send(posts);
+	const post = await Post.find({ owner: { $in: req.user.following } });
+	res.send(post);
 });
 
 router.get("/post/:id", auth, async (req, res) => {
