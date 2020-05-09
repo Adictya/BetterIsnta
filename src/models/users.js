@@ -55,6 +55,12 @@ const userSchema = new mongoose.Schema(
 				ref: "Following",
 			},
 		],
+		saved: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				required: true,
+			},
+		],
 	},
 	{
 		timestamps: true,
@@ -85,6 +91,11 @@ userSchema.methods.follow = async function (id) {
 	await user.save();
 	return 1;
 };
+userSchema.virtual("saves", {
+	ref: "Saved",
+	localField: "saved",
+	foreignField: "_id",
+});
 userSchema.virtual("followers", {
 	ref: "Follower",
 	localField: "_id",

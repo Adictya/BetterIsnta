@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const auth = require("../middleware/auth");
 const User = require("../models/users");
+const Post = require("../models/posts");
 const sharp = require("sharp");
 const follow = require("../middleware/follow");
 
@@ -199,4 +200,25 @@ router.get("/user/me/follower", auth, async (req, res) => {
 	}
 });
 
+router.post("/user/save/:id", auth, async (req, res) => {
+	try {
+		await Post.findOne({ _id: req.params.id }).then(async (res) => {
+			req.user.saved.addToSet(req.params.id);
+			await req.user.save();
+			console.log(req.user);
+		});
+		res.sendStatus(200);
+	} catch (e) {
+		res.sendStatus(500);
+	}
+});
+
+router.get("/user/saved", auth, async (req, res) => {
+	const user = await User.findOne({ _id: req.user._id }).populate({
+		path: "saves",
+		model: Post,
+	});
+	console.log(user.saves);
+	res.send(user.saves);
+});
 module.exports = router;
