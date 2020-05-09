@@ -4,6 +4,7 @@ const auth = require("../middleware/auth");
 const Post = require("../models/posts");
 const sharp = require("sharp");
 const User = require("../models/users");
+const Comment = require("../models/comments");
 
 const router = new express.Router();
 
@@ -64,20 +65,63 @@ router.get("/post/me", auth, async (req, res) => {
 });
 
 router.get("/posts", auth, async (req, res) => {
-	const post = await Post.find({ owner: { $in: req.user.following } });
-	res.send(post);
+	const sort = {};
+	const sending = [];
+	sort["createdAt"] = 1;
+
+	const post = await Post.find({
+		owner: { $in: req.user.following },
+	}).cursor();
+	await post.eachAsync(async (doc) => {
+		const temp = await Post.findOne({ _id: doc._id }).populate({
+			path: "comments",
+			options: {
+				sort,
+			},
+			model: Comment,
+		});
+		sending.push({ post: temp, comments: temp.comments });
+	});
+	res.send(sending);
 });
 
 router.get("/post/:id", auth, async (req, res) => {
-	const post = await Post.findOne({ _id: req.params.id });
-	if (req.user._id === post.owner) {
-		return res.send(post);
+	const sort = {};
+	sort["createdAt"] = 1;
+	try {
+		const post = await Post.findOne({ _id: req.params.id }).populate({
+			path: "comments",
+			options: {
+				sort,
+			},
+			model: Comment,
+		});
+		if (req.user._id === post.owner) {
+			res.send({ post, comments: post.comments });
+		}
+		const user = await User.findOne({ follower: req.user._id });
+		if (!user || !post) {
+			return res.sendStatus(400);
+		}
+		res.send({ post, comments: post.comments });
+	} catch (e) {
+		res.status(500).send(e);
 	}
-	const user = await User.findOne({ follower: req.user._id });
-	if (!user || !post) {
-		return res.sendStatus(400);
+});
+
+router.post("/post/comments/:id", auth, async (req, res) => {
+	console.log(req.body.content);
+	try {
+		const comments = new Comment({
+			content: req.body.content,
+			poster: req.user._id,
+			onPost: req.params.id,
+		});
+		await comments.save();
+		res.sendStatus(200);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-	res.send(post);
 });
 
 module.exports = router;
