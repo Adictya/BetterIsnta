@@ -88,12 +88,12 @@ userSchema.methods.follow = async function (id) {
 userSchema.virtual("followers", {
 	ref: "Follower",
 	localField: "_id",
-	foreignField: "follower",
+	foreignField: "following",
 });
 userSchema.virtual("followings", {
 	ref: "Following",
 	localField: "_id",
-	foreignField: "following",
+	foreignField: "follower",
 });
 userSchema.virtual("posts", {
 	ref: "Post",
@@ -107,7 +107,7 @@ userSchema.methods.toJSON = function () {
 
 	delete userObject.password;
 	delete userObject.tokens;
-	delete userObject.avatar;
+	// delete userObject.avatar;
 
 	return userObject;
 };

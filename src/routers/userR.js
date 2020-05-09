@@ -162,7 +162,6 @@ router.get("/user/me/avatar", auth, async (req, res) => {
 });
 
 router.post("/user/follow/:id", auth, follow, async (req, res) => {
-	const follid = req.params.id;
 	const user = User.findById(req.params.id);
 	if (!user) {
 		return res.status(400).send("user not found");
@@ -172,42 +171,29 @@ router.post("/user/follow/:id", auth, follow, async (req, res) => {
 });
 
 router.get("/user/me/following", auth, async (req, res) => {
-	const followings = [];
 	try {
-		var each = new Promise((resolve, reject) => {
-			req.user.following.forEach(async (obj, index, array) => {
-				// if(index>=req.query.skip && index<=req.query.limit)
-				const foll = await User.findOne({ _id: obj });
-				followings.push(foll);
-				if (index === array.length - 1) resolve();
-			});
-		}).then(() => {
-			followings.sort((a, b) =>
-				a.name > b.name ? 1 : b.name > a.name ? -1 : 0
-			);
-			res.send(followings);
+		const user = await User.findOne({ _id: req.user._id }).populate({
+			path: "followings",
+			model: User,
 		});
+		user.followings.forEach((doc) => {
+			doc.follower = [];
+			doc.following = [];
+			doc.email = "";
+		});
+		res.send(user.followings);
 	} catch (e) {
 		res.status(500).send(e);
 	}
 });
 
 router.get("/user/me/follower", auth, async (req, res) => {
-	const followers = [];
 	try {
-		var each = new Promise((resolve, reject) => {
-			req.user.follower.forEach(async (obj, index, array) => {
-				// if(index>=req.query.skip && index<=req.query.limit)
-				const foll = await User.findOne({ _id: obj });
-				followers.push(foll);
-				if (index === array.length - 1) resolve();
-			});
-		}).then(() => {
-			followers.sort((a, b) =>
-				a.name > b.name ? 1 : b.name > a.name ? -1 : 0
-			);
-			res.send(followers);
+		const user = await User.findOne({ _id: req.user._id }).populate({
+			path: "followers",
+			model: User,
 		});
+		res.send(user.followers);
 	} catch (e) {
 		res.status(500).send(e);
 	}
